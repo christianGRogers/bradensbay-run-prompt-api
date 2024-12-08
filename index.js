@@ -1,13 +1,17 @@
 const express = require('express');
+const cors = require('cors');
 const { exec } = require('child_process');
+const OpenAI = require('openai');
+require('dotenv').config(); // Load environment variables from .env file
 
-const cors = require('cors'); 
 const app = express();
 app.use(cors());
 const PORT = 3003;
-import OpenAI from "openai";
-const openai = new OpenAI();
 
+// Initialize OpenAI client with API key from environment variable
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // API key loaded from .env file
+});
 
 
 app.use(express.json());
