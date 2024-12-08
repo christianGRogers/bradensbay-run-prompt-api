@@ -1,30 +1,14 @@
 const express = require('express');
 const { exec } = require('child_process');
-const {
-    GoogleGenerativeAI,
-    HarmCategory,
-    HarmBlockThreshold,
-} = require("@google/generative-ai");
+
 const cors = require('cors'); 
 const app = express();
 app.use(cors());
 const PORT = 3003;
+import OpenAI from "openai";
+const openai = new OpenAI();
 
-const apiKey = '';
-const genAI = new GoogleGenerativeAI(apiKey);
 
-const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro",
-    systemInstruction: "your output should consist only of linux commands available on ubuntu assume your output will be put directly into a vm container running apache 2 (already installed) with internet access with the exposed file folder being /var/www/html/someusername the user dose not nhave the abblility to expose more then port 80 and they have sudo privilege using userpassword. Whenever supplying code give the full command to enter using cat and EOF also every command that involves changes use echo userpassword | command.  This includes echo userpassword | cat << EOF . At the end of your commands do a **Explination:** section. make sure the command section is enclosed with ''' bash it is vital you use echo userpassword | sudo for every command. Note that for front end code you do not need to make a git repo or change file ownership. Note that you should avoid downloads in most instances ie templates for sites but if you must download a library you must export the proxy ip each time using export http_proxy=http://10.0.0.11:3128; your download command here; however downloads should be avoided unless explicitly asked for. Note that  /var/www/html/someusername may not be empty and requires you to remove all files prior to executing commands unless specificaly asked. Avoid the use of subdirectories placing index.html in /var/www/html/someusername always unless specificaly asked. ",
-});
-
-const generationConfig = {
-    temperature: 1,
-    topP: 0.95,
-    topK: 40,
-    maxOutputTokens: 8192,
-    responseMimeType: "text/plain",
-};
 
 app.use(express.json());
 
@@ -57,13 +41,17 @@ function runCommandsInLXDVM(uid, commands) {
 }
 
 async function chat(input) {
-    const chatSession = model.startChat({
-        generationConfig,
-        history: [],
+    const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+            { role: "system", content: "your output should consist only of linux commands available on ubuntu assume your output will be put directly into a vm container running apache 2 (already installed) with internet access with the exposed file folder being /var/www/html/someusername the user dose not nhave the abblility to expose more then port 80 and they have sudo privilege using userpassword. Whenever supplying code give the full command to enter using cat and EOF also every command that involves changes use echo userpassword | command.  This includes echo userpassword | cat << EOF . At the end of your commands do a **Explination:** section. make sure the command section is enclosed with ''' bash it is vital you use echo userpassword | sudo for every command. Note that for front end code you do not need to make a git repo or change file ownership. Note that you should avoid downloads in most instances ie templates for sites but if you must download a library you must export the proxy ip each time using export http_proxy=http://10.0.0.11:3128; your download command here; however downloads should be avoided unless needed. Note that  /var/www/html/someusername may not be empty and requires you to remove all files prior to executing commands unless specificaly asked. Avoid the use of subdirectories placing index.html in /var/www/html/someusername always unless specificaly asked. /var/www/html/someusername always unless specificaly asked.  There should be no explanation  before the ```bash." },
+            {
+                role: "user",
+                content: input,
+            },
+        ],
     });
-
-    const result = await chatSession.sendMessage(input);
-    return result;
+    return completion.choices[0].message;
 }
 
 // Define the route to handle the user prompt
