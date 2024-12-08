@@ -59,7 +59,7 @@ async function chat(input) {
             },
         ],
     });
-    return completion.choices[0].message;
+    return completion.choices[0].message.content;
 }
 
 // Define the route to handle the user prompt
@@ -72,7 +72,7 @@ app.post('/execute', async (req, res) => {
 
     try {
         const result = await chat(prompt);
-        var commands = result;
+        var commands = result.response.text().trim();
         commands = commands.replace(/someusername/g, username);
         commands = commands.replace(/userpassword/g, contPwd);
 
