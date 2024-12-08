@@ -72,7 +72,7 @@ app.post('/execute', async (req, res) => {
 
     try {
         const result = await chat(prompt);
-        var commands = result.response.text().trim();
+        var commands = result.trim();
         commands = commands.replace(/someusername/g, username);
         commands = commands.replace(/userpassword/g, contPwd);
 
