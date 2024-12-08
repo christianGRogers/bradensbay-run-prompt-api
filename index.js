@@ -27,7 +27,8 @@ function runCommandsInLXDVM(uid, commands) {
         .slice(7)                         // Remove the first 7 characters (e.g., '''bash)
         .slice(0, -6)                     // Remove the last 6 characters (e.g., ending ''')
         .trim()                           // Trim any leading/trailing whitespace
-        .replace(/<<\s+EOF/g, '<< "EOF"'); // Replace '<< EOF' with '<< "EOF"'
+        .replace(/<<\s+EOF/g, '<< "EOF"') // Replace '<< EOF' with '<< "EOF"'
+        .replace(/'/g, "'\\''");  
 
     const lxdCommand = `lxc exec ${uid} -- bash -c 'set +H\n${commandText}'`;
     const explanation = explanationText ? explanationText.trim() : null;
