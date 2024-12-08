@@ -1,16 +1,20 @@
 const express = require('express');
 const cors = require('cors');
-const { exec } = require('child_process');
 const OpenAI = require('openai');
-require('dotenv').config(); // Load environment variables from .env file
 
 const app = express();
 app.use(cors());
 const PORT = 3003;
 
-// Initialize OpenAI client with API key from environment variable
+// Check for the API key in the environment variables
+if (!process.env.OPENAI_API_KEY) {
+  console.error('Error: OPENAI_API_KEY environment variable is not set.');
+  process.exit(1);
+}
+
+// Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // API key loaded from .env file
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 
