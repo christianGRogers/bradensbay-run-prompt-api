@@ -65,40 +65,53 @@ async function fetchWebContent(link) {
     }
 }
 
+// async function chat(input) {
+//     const urlPattern = /(https?:\/\/[^\s]+)/g;
+//     const links = input.match(urlPattern);
+
+//     let contentSnippet = input;
+
+//     // if (links && links.length > 0) {
+//     //     const link = links[0];
+//     //     const webContent = await fetchWebContent(link);
+
+//     //     if (webContent) {
+//     //         contentSnippet = webContent.slice(0, maxLength);
+//     //     }
+//     // }
+
+//     try {
+//         const completion = await openai.chat.completions.create({
+//             model: "gpt-4o",
+//             messages: [
+//                 {
+//                     role: "system",
+//                     content: "your output should consist only of linux commands available on ubuntu assume your output will be put directly into a vm container running apache 2 (already installed) with internet access with the exposed file folder being /var/www/html/someusername the user dose not nhave the abblility to expose more then port 80 and they have sudo privilege using userpassword. Whenever supplying code give the full command to enter using cat and EOF also every command that involves changes use echo userpassword | command.  This includes echo userpassword | cat << EOF . At the end of your commands do a **Explination:** section. make sure the command section is enclosed with ''' bash it is vital you use echo userpassword | sudo for every command. Note that for front end code you do not need to make a git repo or change file ownership. Note that you should avoid downloads in most instances ie templates for sites but if you must download a library you must export the proxy ip each time using export http_proxy=http://10.0.0.11:3128; your download command here; however downloads should be avoided unless needed. Note that  /var/www/html/someusername may not be empty and requires you to remove all files prior to executing commands unless specificaly asked. Avoid the use of subdirectories placing index.html in /var/www/html/someusername always unless specificaly asked. /var/www/html/someusername always unless specificaly asked.  There should be no explanation  before the ```bash.", // System instructions here
+//                 },
+//                 {
+//                     role: "user",
+//                     content: contentSnippet,
+//                 },
+//             ],
+//         });
+//         return completion.data.choices[0].message.content;
+//     } catch (error) {
+//         console.error("Error with OpenAI API:", error);
+//         return null;
+//     }
+//}
 async function chat(input) {
-    const urlPattern = /(https?:\/\/[^\s]+)/g;
-    const links = input.match(urlPattern);
-
-    let contentSnippet = input;
-
-    // if (links && links.length > 0) {
-    //     const link = links[0];
-    //     const webContent = await fetchWebContent(link);
-
-    //     if (webContent) {
-    //         contentSnippet = webContent.slice(0, maxLength);
-    //     }
-    // }
-
-    try {
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [
-                {
-                    role: "system",
-                    content: "your output should consist only of linux commands available on ubuntu assume your output will be put directly into a vm container running apache 2 (already installed) with internet access with the exposed file folder being /var/www/html/someusername the user dose not nhave the abblility to expose more then port 80 and they have sudo privilege using userpassword. Whenever supplying code give the full command to enter using cat and EOF also every command that involves changes use echo userpassword | command.  This includes echo userpassword | cat << EOF . At the end of your commands do a **Explination:** section. make sure the command section is enclosed with ''' bash it is vital you use echo userpassword | sudo for every command. Note that for front end code you do not need to make a git repo or change file ownership. Note that you should avoid downloads in most instances ie templates for sites but if you must download a library you must export the proxy ip each time using export http_proxy=http://10.0.0.11:3128; your download command here; however downloads should be avoided unless needed. Note that  /var/www/html/someusername may not be empty and requires you to remove all files prior to executing commands unless specificaly asked. Avoid the use of subdirectories placing index.html in /var/www/html/someusername always unless specificaly asked. /var/www/html/someusername always unless specificaly asked.  There should be no explanation  before the ```bash.", // System instructions here
-                },
-                {
-                    role: "user",
-                    content: contentSnippet,
-                },
-            ],
-        });
-        return completion.data.choices[0].message.content;
-    } catch (error) {
-        console.error("Error with OpenAI API:", error);
-        return null;
-    }
+    const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+            { role: "system", content: "your output should consist only of linux commands available on ubuntu assume your output will be put directly into a vm container running apache 2 (already installed) with internet access with the exposed file folder being /var/www/html/someusername the user dose not nhave the abblility to expose more then port 80 and they have sudo privilege using userpassword. Whenever supplying code give the full command to enter using cat and EOF also every command that involves changes use echo userpassword | command.  This includes echo userpassword | cat << EOF . At the end of your commands do a **Explination:** section. make sure the command section is enclosed with ''' bash it is vital you use echo userpassword | sudo for every command. Note that for front end code you do not need to make a git repo or change file ownership. Note that you should avoid downloads in most instances ie templates for sites but if you must download a library you must export the proxy ip each time using export http_proxy=http://10.0.0.11:3128; your download command here; however downloads should be avoided unless needed. Note that  /var/www/html/someusername may not be empty and requires you to remove all files prior to executing commands unless specificaly asked. Avoid the use of subdirectories placing index.html in /var/www/html/someusername always unless specificaly asked. /var/www/html/someusername always unless specificaly asked.  There should be no explanation  before the ```bash." },
+            {
+                role: "user",
+                content: input,
+            },
+        ],
+    });
+    return completion.choices[0].message.content;
 }
 
 // Define the route to handle the user prompt
