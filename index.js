@@ -58,9 +58,9 @@ async function fetchWebContent(link) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const content = await response.text();
-        return content;
+        return content.slice(0, maxLength); // Ensure content length
     } catch (error) {
-        console.error("Error fetching web content:", error);
+        console.error("Error fetching web content:", error.message);
         return null;
     }
 }
@@ -71,14 +71,14 @@ async function chat(input) {
 
     let contentSnippet = input;
 
-    if (links && links.length > 0) {
-        const link = links[0];
-        const webContent = await fetchWebContent(link);
+    // if (links && links.length > 0) {
+    //     const link = links[0];
+    //     const webContent = await fetchWebContent(link);
 
-        if (webContent) {
-            contentSnippet = webContent.slice(0, maxLength);
-        }
-    }
+    //     if (webContent) {
+    //         contentSnippet = webContent.slice(0, maxLength);
+    //     }
+    // }
 
     try {
         const completion = await openai.chat.completions.create({
