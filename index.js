@@ -81,7 +81,7 @@ async function chat(input) {
     }
 
     try {
-        const completion = await openai.createChatCompletion({
+        const completion = await openai.chat.completions.create({
             model: "gpt-4o",
             messages: [
                 {
