@@ -6,7 +6,7 @@ const { exec } = require('child_process');
 const app = express();
 app.use(cors());
 const PORT = 3003;
-const maxLength = 500000; //max web content
+const maxLength = 100000; //max web content
 
 // Check for the API key in the environment variables
 if (!process.env.OPENAI_API_KEY) {
