@@ -101,6 +101,20 @@ async function fetchWebContent(link) {
 //     }
 //}
 async function chat(input) {
+    const urlPattern = /(https?:\/\/[^\s]+)/g;
+    const links = input.match(urlPattern);
+
+    if (links && links.length > 0) {
+        const link = links[0];
+        const webContent = await fetchWebContent(link);
+
+        if (webContent) {
+            const snippet = webContent.slice(0, maxLength);
+            input = input.replace(link, snippet);
+        }
+    }
+    
+
     const completion = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
