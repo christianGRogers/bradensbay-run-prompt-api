@@ -83,7 +83,7 @@ async function chat(input) {
 
         if (webContent) {
             const snippet = webContent.slice(0, maxLength);
-            input = input.replace(link, snippet);
+            input = input.replace(link, "the content of "+link+" is "+snippet);
         }
     }
     
