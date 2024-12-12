@@ -2,11 +2,20 @@ const express = require('express');
 const cors = require('cors');
 const OpenAI = require('openai');
 const { exec } = require('child_process');
+import { encoding_for_model } from "@dqbd/tiktoken";
 
 const app = express();
 app.use(cors());
 const PORT = 3003;
-const maxLength = 200000; //max web content
+const maxLength = 2000; //max token count for web input
+
+function numTokensFromString(message) {
+    const encoder = encoding_for_model("gpt-3.5-turbo");
+  
+    const tokens = encoder.encode(message);
+    encoder.free();
+    return tokens.length;
+  }
 
 // Check for the API key in the environment variables
 if (!process.env.OPENAI_API_KEY) {
@@ -63,7 +72,10 @@ async function fetchWebContent(link) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const content = await response.text();
-        return content.slice(0, maxLength); // Ensure content length
+        while (maxLength < numTokensFromString(content)){
+            content = content.slice(0, -1000); // Reduces content by removing 1000 character at a time 
+        }
+        return  // Ensure content length
     } catch (error) {
         console.error("Error fetching web content:", error.message);
         return null;
