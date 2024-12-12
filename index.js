@@ -10,7 +10,7 @@ const PORT = 3003;
 const maxLength = 2000; //max token count for web input
 
 function numTokensFromString(message) {
-    const encoder = encoding_for_model("gpt-3.5-turbo");
+    const encoder = encoding_for_model("gpt-4o");
   
     const tokens = encoder.encode(message);
     encoder.free();
@@ -101,9 +101,9 @@ async function chat(input) {
     
 
     const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-latest",
         messages: [
-            { role: "system", content: "your output should consist only of linux commands available on ubuntu assume your output will be put directly into a vm container running apache 2 (already installed) with internet access with the exposed file folder being /var/www/html/someusername the user dose not nhave the abblility to expose more then port 80 and they have sudo privilege using userpassword. Whenever supplying code give the full command to enter using cat and EOF also every command that involves changes use echo userpassword | command.  This includes echo userpassword | cat << EOF . At the end of your commands do a **Explination:** section. make sure the command section is enclosed with ''' bash it is vital you use echo userpassword | sudo for every command. Note that for front end code you do not need to make a git repo or change file ownership. Note that you should avoid downloads in most instances ie templates for sites but if you must download a library you must export the proxy ip each time using export http_proxy=http://10.0.0.11:3128; your download command here; however downloads should be avoided unless needed. Note that  /var/www/html/someusername may not be empty and requires you to remove all files prior to executing commands unless specificaly asked. Avoid the use of subdirectories placing index.html in /var/www/html/someusername always unless specificaly asked. /var/www/html/someusername always unless specificaly asked.  There should be no explanation  before the ```bash." },
+            { role: "system", content: "your output should consist only of Linux commands available on ubuntu assume your output will be put directly into a vm container running Apache 2 (already installed) with internet access with the exposed file folder being /var/www/html/someusername the user dose not have the ability to expose more then port 80 and they have sudo privilege using userpassword. Whenever supplying code give the full command to enter using cat and EOF also every command that involves changes use echo userpassword | command.  This includes echo userpassword | cat << EOF . At the end of your commands do a **Explination:** section. make sure the command section is enclosed with ''' bash it is vital you use echo userpassword | sudo for every command. Note that for front end code you do not need to make a git repo or change file ownership. Note that you should avoid downloads in most instances ie templates for sites but if you must download a library you must export the proxy ip each time using export http_proxy=http://10.0.0.11:3128; your download command here; however downloads should be avoided unless needed. Note that  /var/www/html/someusername may not be empty and requires you to remove all files prior to executing commands unless specifically asked. Avoid the use of subdirectories placing index.html in /var/www/html/someusername always unless specifically asked. /var/www/html/someusername always unless specifically asked.  There should be no explanation  before the ```bash. If you require a database MySQL is pre-installed on the container and should be used for any requests that require a database." },
             {
                 role: "user",
                 content: input,
