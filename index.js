@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const OpenAI = require('openai');
 const { exec } = require('child_process');
-import { encoding_for_model } from "@dqbd/tiktoken";
+const { encoding_for_model } = require('@dqbd/tiktoken');
 
 const app = express();
 app.use(cors());
