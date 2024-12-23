@@ -10,8 +10,8 @@ const app = express();
 app.use(cors());
 const PORT = 3003;
 const maxLength = 2000; // Max token count for web input
+const maxHistory = 15; // Max number of prior inputs to include
 
-// Load the system message from an external file
 const systemMessagePath = path.join(__dirname, 'system_message.txt');
 let systemMessage = '';
 
@@ -30,18 +30,33 @@ function numTokensFromString(message) {
     return tokens.length;
 }
 
-// Check for the API key in the environment variables
 if (!process.env.OPENAI_API_KEY) {
     console.error('Error: OPENAI_API_KEY environment variable is not set.');
     process.exit(1);
 }
 
-// Initialize OpenAI client
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
 app.use(express.json());
+
+const userHistory = {}; // In-memory store for user command history
+
+function addUserHistory(username, command) {
+    if (!userHistory[username]) {
+        userHistory[username] = [];
+    }
+    userHistory[username].push(command);
+    // Ensure history size does not exceed maxHistory
+    if (userHistory[username].length > maxHistory) {
+        userHistory[username].shift();
+    }
+}
+
+function getUserHistory(username) {
+    return userHistory[username] || [];
+}
 
 function runCommandsInLXDVM(uid, commands) {
     let [rawCommandText, explanationText] = commands.split(/\*\*Explanation:\*\*/s);
@@ -55,7 +70,6 @@ function runCommandsInLXDVM(uid, commands) {
     const lxdCommand = `lxc exec ${uid} -- bash -c 'set +H\n${commandText}'`;
     const explanation = explanationText ? explanationText.trim() : null;
 
-    // Return a promise to ensure async handling in the route
     return new Promise((resolve, reject) => {
         exec(lxdCommand, (error, stdout, stderr) => {
             if (error) {
@@ -67,7 +81,7 @@ function runCommandsInLXDVM(uid, commands) {
                 resolve(explanation);
             }
             console.log(`stdout: ${stdout}`);
-            resolve(explanation);  // Resolve with explanation after execution
+            resolve(explanation);  
         });
     });
 }
@@ -83,7 +97,7 @@ async function fetchWebContent(link) {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        const content = await response.text();
+        let content = await response.text();
         while (maxLength < numTokensFromString(content)) {
             content = content.slice(0, -1000); // Reduces content by removing 1000 characters at a time 
         }
@@ -94,7 +108,7 @@ async function fetchWebContent(link) {
     }
 }
 
-async function chat(input) {
+async function chat(input, username) {
     const urlPattern = /(https?:\/\/[^\s]+)/g;
     const links = input.match(urlPattern);
 
@@ -109,29 +123,34 @@ async function chat(input) {
         }
     }
 
+    const history = getUserHistory(username);
+    const messages = [
+        { role: "system", content: systemMessage },
+        ...history.map(command => ({ role: "user", content: command })),
+        { role: "user", content: input },
+    ];
+
     const completion = await openai.chat.completions.create({
         model: "gpt-4o",
-        messages: [
-            { role: "system", content: systemMessage },
-            { role: "user", content: input },
-        ],
+        messages,
     });
     return completion.choices[0].message.content;
 }
 
-// Define the route to handle the user prompt
 app.post('/execute', async (req, res) => {
     const { uid, prompt, username, contPwd } = req.body;
 
-    if (!uid || !prompt) {
-        return res.status(400).json({ error: 'uid and prompt are required.' });
+    if (!uid || !prompt || !username) {
+        return res.status(400).json({ error: 'uid, username, and prompt are required.' });
     }
 
     try {
-        const result = await chat(prompt);
+        const result = await chat(prompt, username);
         var commands = result.trim();
         commands = commands.replace(/someusername/g, username);
         commands = commands.replace(/userpassword/g, contPwd);
+
+        addUserHistory(username, prompt);
 
         if (commands) {
             console.log("AI output for uid:" + uid + " prompt=" + prompt + " => " + commands);
