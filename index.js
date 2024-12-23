@@ -3,31 +3,43 @@ const cors = require('cors');
 const OpenAI = require('openai');
 const { exec } = require('child_process');
 const { encoding_for_model } = require('@dqbd/tiktoken');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 const PORT = 3003;
-const maxLength = 2000; //max token count for web input
+const maxLength = 2000; // Max token count for web input
+
+// Load the system message from an external file
+const systemMessagePath = path.join(__dirname, 'system_message.txt');
+let systemMessage = '';
+
+try {
+    systemMessage = fs.readFileSync(systemMessagePath, 'utf8');
+    console.log('System message loaded successfully.');
+} catch (error) {
+    console.error('Error loading system message:', error.message);
+    process.exit(1);
+}
 
 function numTokensFromString(message) {
     const encoder = encoding_for_model("gpt-4o");
-  
     const tokens = encoder.encode(message);
     encoder.free();
     return tokens.length;
-  }
+}
 
 // Check for the API key in the environment variables
 if (!process.env.OPENAI_API_KEY) {
-  console.error('Error: OPENAI_API_KEY environment variable is not set.');
-  process.exit(1);
+    console.error('Error: OPENAI_API_KEY environment variable is not set.');
+    process.exit(1);
 }
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.OPENAI_API_KEY,
 });
-
 
 app.use(express.json());
 
@@ -72,17 +84,15 @@ async function fetchWebContent(link) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const content = await response.text();
-        while (maxLength < numTokensFromString(content)){
-            content = content.slice(0, -1000); // Reduces content by removing 1000 character at a time 
+        while (maxLength < numTokensFromString(content)) {
+            content = content.slice(0, -1000); // Reduces content by removing 1000 characters at a time 
         }
-        return  // Ensure content length
+        return content;  // Ensure content length
     } catch (error) {
         console.error("Error fetching web content:", error.message);
         return null;
     }
 }
-
-
 
 async function chat(input) {
     const urlPattern = /(https?:\/\/[^\s]+)/g;
@@ -95,19 +105,15 @@ async function chat(input) {
 
         if (webContent) {
             const snippet = webContent.slice(0, maxLength);
-            input = input.replace(link, "the content of "+link+" is "+snippet);
+            input = input.replace(link, "the content of " + link + " is " + snippet);
         }
     }
-    
 
     const completion = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
-            { role: "system", content: "your output should consist only of Linux commands available on ubuntu assume your output will be put directly into a vm container running Apache 2 (already installed) with internet access with the exposed file folder being /var/www/html/someusername the user dose not have the ability to expose more then port 80 and they have sudo privilege using userpassword. Whenever supplying code give the full command to enter using cat and EOF also every command that involves changes use echo userpassword | command.  This includes echo userpassword | cat << EOF . At the end of your commands do a **Explination:** section. make sure the command section is enclosed with ''' bash it is vital you use echo userpassword | sudo for every command. Note that for front end code you do not need to make a git repo or change file ownership. Note that you should avoid downloads in most instances ie templates for sites but if you must download a library you must export the proxy ip each time using export http_proxy=http://10.0.0.11:3128; your download command here; however downloads should be avoided unless needed. Note that  /var/www/html/someusername may not be empty and requires you to remove all files prior to executing commands unless specifically asked. Avoid the use of subdirectories placing index.html in /var/www/html/someusername always unless specifically asked. /var/www/html/someusername always unless specifically asked.  There should be no explanation  before the ```bash. If you require a database MySQL is pre-installed on the container and should be used for any requests that require a database. Never put any explanation before ```bash" },
-            {
-                role: "user",
-                content: input,
-            },
+            { role: "system", content: systemMessage },
+            { role: "user", content: input },
         ],
     });
     return completion.choices[0].message.content;
@@ -128,11 +134,11 @@ app.post('/execute', async (req, res) => {
         commands = commands.replace(/userpassword/g, contPwd);
 
         if (commands) {
-            console.log("ai out for uid:" + uid + " prompt=" + prompt + " => " + commands);
+            console.log("AI output for uid:" + uid + " prompt=" + prompt + " => " + commands);
             const explanation = await runCommandsInLXDVM(uid, commands);
             return res.status(200).json({ message: explanation });
         } else {
-            return res.status(500).json({ error: 'Failed to generate commands from Gemini.' });
+            return res.status(500).json({ error: 'Failed to generate commands from OpenAI.' });
         }
     } catch (error) {
         console.error(`Error: ${error.message}`);
