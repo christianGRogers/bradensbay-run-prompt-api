@@ -145,7 +145,7 @@ app.post('/execute', async (req, res) => {
     }
     if(prompt == 'clear'){
         userHistory[username] = [];
-        return res.status(200).json({ message: 'history was cleared for'+username });
+        return res.status(200).json({ message: 'input history was cleared for '+username });
     }
 
     try {
