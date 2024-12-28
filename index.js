@@ -143,6 +143,10 @@ app.post('/execute', async (req, res) => {
     if (!uid || !prompt || !username) {
         return res.status(400).json({ error: 'uid, username, and prompt are required.' });
     }
+    if(prompt == 'clear'){
+        userHistory[username] = [];
+        return res.status(200).json({ message: 'history was cleared for'+username });
+    }
 
     try {
         const result = await chat(prompt, username);
