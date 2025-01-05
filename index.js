@@ -135,8 +135,13 @@ async function chat(input, username) {
         ];
 
         const completion = await openai.chat.completions.create({
-            model: "gpt-4o",
+            model: "chatgpt-4o-latest",
             messages,
+            temperature: 1,
+            max_completion_tokens: 16383,
+            top_p: 1,
+            frequency_penalty: 0,
+            presence_penalty: 0
         });
         return completion.choices[0].message.content;
     } catch (error) {
