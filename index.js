@@ -78,7 +78,8 @@ function runCommandsInLXDVM(uid, commands) {
         exec(lxdCommand, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Command execution error: ${error.message}`);
-                reject(new Error('Failed to execute commands on the LXD VM.'));
+                //reject(new Error('Failed to execute commands on the LXD VM.'));
+                resolve({ output: explanation, stdout });
             } else if (stderr) {
                 console.warn(`Command stderr: ${stderr}`);
                 resolve({ output: explanation, stderr });
